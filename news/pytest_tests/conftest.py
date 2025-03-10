@@ -39,8 +39,10 @@ def not_author_client(not_author):
 
 @pytest.fixture
 def news(author):
+    today = timezone.now()
     news = News.objects.create(  # Создаём объект заметки.
         title='Заголовок',
+        date=today,
         text='Текст заметки',
     )
     return news

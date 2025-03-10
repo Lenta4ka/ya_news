@@ -1,10 +1,9 @@
 # test_logic.py
 from pytest_django.asserts import assertRedirects, assertFormError
-import pytest
 from django.urls import reverse
 from http import HTTPStatus
 
-from news.models import News, Comment
+from news.models import Comment
 from news.forms import BAD_WORDS, WARNING
 
 
@@ -19,24 +18,22 @@ def test_anonymous_user_cant_create_comment(client, form_data, news):
     assertRedirects(response, expected_url)
     assert Comment.objects.count() == 0
 
+
 def test_login_user_create_comment(author_client, form_data, news):
 # Зарегистрированный пользователь может добавить комментарий
     url = reverse('news:detail', args =(news.id,))
     response = author_client.post(url, data=form_data)
     assert Comment.objects.count() == 1
     new_comment = Comment.objects.get()
-    # Сверяем атрибуты объекта с ожидаемыми.
     assert new_comment.text == form_data['text']
 
+
 def test_create_comment_bad_words(author_client, form_data, comment):
-# Комментарий с плохими словами не сохраняется в БД
+    # Комментарий с плохими словами не сохраняется в БД
     url = reverse('news:detail', args =(comment.id,))
     form_data['text'] = BAD_WORDS[0]
-    print(form_data['text'])
     response = author_client.post(url, data=form_data)
-    
     assertFormError(response, 'form', 'text', errors=( WARNING))
-
     assert Comment.objects.count() == 1
 
 
@@ -44,38 +41,29 @@ def test_author_can_delete_comment(author_client, id_for_args):
 # Автор может удалить свой комментарий
     url = reverse('news:delete', args=id_for_args)
     response = author_client.post(url)
-    #assertRedirects(response, reverse('notes:success'))
     assert Comment.objects.count() == 0
 
 
 def test_other_user_cant_delete_comment(not_author_client, id_comment_for_args):
-#Не автор удалить комментарий не может
+    # Не автор удалить комментарий не может
     url = reverse('news:delete', args=id_comment_for_args)
     response = not_author_client.post(url)
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.count() == 1
 
+
 def test_author_can_edit_comment(author_client, form_data, comment):
-# Автор может редактировать свой комментарий
+    # Автор может редактировать свой комментарий
     url = reverse('news:edit', args=(comment.id,))
-    # В POST-запросе на адрес редактирования заметки
-    # отправляем form_data - новые значения для полей заметки:
     response = author_client.post(url, form_data)
-    # Проверяем редирект:
-    #assertRedirects(response, reverse('notes:success'))
-    # Обновляем объект заметки note: получаем обновлённые данные из БД:
     comment.refresh_from_db()
-    # Проверяем, что атрибуты заметки соответствуют обновлённым:
     assert comment.text == form_data['text']
 
 
 def test_other_user_cant_edit_note(not_author_client, form_data, comment):
-# Не автор редактировать коммнентарий не может
+    # Не автор редактировать коммнентарий не может
     url = reverse('news:edit', args=(comment.id,))
     response = not_author_client.post(url, form_data)
-    # Проверяем, что страница не найдена:
     assert response.status_code == HTTPStatus.NOT_FOUND
-    # Получаем новый объект запросом из БД.
     comment_from_db = Comment.objects.get(id=comment.id)
-    # Проверяем, что атрибуты объекта из БД равны атрибутам заметки до запроса.
     assert comment.text == comment_from_db.text
