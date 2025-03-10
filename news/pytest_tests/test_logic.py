@@ -23,6 +23,8 @@ def test_login_user_create_comment(author_client, form_data, news):
     # Зарегистрированный пользователь может добавить комментарий
     url = reverse('news:detail', args=(news.id,))
     response = author_client.post(url, data=form_data)
+    expected_url = f'{url}#comments'
+    assertRedirects(response, expected_url)
     assert Comment.objects.count() == 1
     new_comment = Comment.objects.get()
     assert new_comment.text == form_data['text']
@@ -41,6 +43,7 @@ def test_author_can_delete_comment(author_client, id_for_args):
     # Автор может удалить свой комментарий
     url = reverse('news:delete', args=id_for_args)
     response = author_client.post(url)
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.count() == 0
 
 
@@ -56,7 +59,7 @@ def test_other_user_cant_delete_comment(
 def test_author_can_edit_comment(author_client, form_data, comment):
     # Автор может редактировать свой комментарий
     url = reverse('news:edit', args=(comment.id,))
-    response = author_client.post(url, form_data)
+    author_client.post(url, form_data)
     comment.refresh_from_db()
     assert comment.text == form_data['text']
 
