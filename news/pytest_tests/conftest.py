@@ -1,4 +1,6 @@
 # conftest.py
+from datetime import datetime, timedelta
+from django.utils import timezone
 import pytest
 
 # Импортируем класс клиента.
@@ -6,6 +8,7 @@ from django.test.client import Client
 
 # Импортируем модель заметки, чтобы создать экземпляр.
 from news.models import News, Comment
+from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
 
 
 @pytest.fixture
@@ -39,21 +42,47 @@ def news(author):
     news = News.objects.create(  # Создаём объект заметки.
         title='Заголовок',
         text='Текст заметки',
-        #date='note-slug',
     )
     return news
 
 @pytest.fixture
 def comment(news,author):
+    today = timezone.now()
     comment = Comment.objects.create(
         news = news,
+        created  = today,
         text = 'комментарий из фикстур',
         author = author,)
     return comment
 
 @pytest.fixture
+def comments(news,author):
+    today = timezone.now()
+    comments = []
+    for index in range(5):
+        comment = Comment.objects.create(
+            news=news,
+            author=author,
+            text=f'Текст {index}',
+            created=today - timedelta(days=index),
+        )
+        comment.save()
+        comments.append(comment)
+    return comments
+@pytest.fixture
 # Фикстура запрашивает другую фикстуру создания заметки.
-def slug_for_args(news):  
+def id_for_args(news):  
     # И возвращает кортеж, который содержит slug заметки.
     # На то, что это кортеж, указывает запятая в конце выражения.
     return (news.id,)
+
+@pytest.fixture
+def news_list():
+    today = timezone.now()
+    for index in range(NEWS_COUNT_ON_HOME_PAGE + 1):
+        news = News.objects.create(
+            title=f'Новость {index}',
+            date=today - timedelta(days=index),
+            text='Просто текст.')
+        news.save()
+    return index

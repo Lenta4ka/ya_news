@@ -19,7 +19,6 @@ def test_pages_availability_for_anonymous_user(client, name):
 
 def test_detal_pages_anonim(client, news):
     url = reverse('news:detail', args =(news.id,))
-    print(url)
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
 
