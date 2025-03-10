@@ -8,8 +8,8 @@ from news.forms import BAD_WORDS, WARNING
 
 
 def test_anonymous_user_cant_create_comment(client, form_data, news):
-# Анонимный пользователь не может добавить комментарий
-    url = reverse('news:detail', args =(news.id,))
+    # Анонимный пользователь не может добавить комментарий
+    url = reverse('news:detail', args=(news.id,))
     # Через анонимный клиент пытаемся создать заметку:
     response = client.post(url, data=form_data)
     login_url = reverse('users:login')
@@ -20,8 +20,8 @@ def test_anonymous_user_cant_create_comment(client, form_data, news):
 
 
 def test_login_user_create_comment(author_client, form_data, news):
-# Зарегистрированный пользователь может добавить комментарий
-    url = reverse('news:detail', args =(news.id,))
+    # Зарегистрированный пользователь может добавить комментарий
+    url = reverse('news:detail', args=(news.id,))
     response = author_client.post(url, data=form_data)
     assert Comment.objects.count() == 1
     new_comment = Comment.objects.get()
@@ -30,21 +30,22 @@ def test_login_user_create_comment(author_client, form_data, news):
 
 def test_create_comment_bad_words(author_client, form_data, comment):
     # Комментарий с плохими словами не сохраняется в БД
-    url = reverse('news:detail', args =(comment.id,))
+    url = reverse('news:detail', args=(comment.id,))
     form_data['text'] = BAD_WORDS[0]
     response = author_client.post(url, data=form_data)
-    assertFormError(response, 'form', 'text', errors=( WARNING))
+    assertFormError(response, 'form', 'text', errors=(WARNING))
     assert Comment.objects.count() == 1
 
 
 def test_author_can_delete_comment(author_client, id_for_args):
-# Автор может удалить свой комментарий
+    # Автор может удалить свой комментарий
     url = reverse('news:delete', args=id_for_args)
     response = author_client.post(url)
     assert Comment.objects.count() == 0
 
 
-def test_other_user_cant_delete_comment(not_author_client, id_comment_for_args):
+def test_other_user_cant_delete_comment(
+        not_author_client, id_comment_for_args):
     # Не автор удалить комментарий не может
     url = reverse('news:delete', args=id_comment_for_args)
     response = not_author_client.post(url)

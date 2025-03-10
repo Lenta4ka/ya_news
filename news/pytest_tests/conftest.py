@@ -1,5 +1,5 @@
 # conftest.py
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.utils import timezone
 import pytest
 
@@ -13,12 +13,12 @@ from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
 
 @pytest.fixture
 # Используем встроенную фикстуру для модели пользователей django_user_model.
-def author(django_user_model):  
+def author(django_user_model):
     return django_user_model.objects.create(username='Автор')
 
 
 @pytest.fixture
-def not_author(django_user_model):  
+def not_author(django_user_model):
     return django_user_model.objects.create(username='Не автор')
 
 
@@ -47,18 +47,20 @@ def news(author):
     )
     return news
 
-@pytest.fixture
-def comment(news,author):
-    today = timezone.now()
-    comment = Comment.objects.create(
-        news = news,
-        created  = today,
-        text = 'комментарий из фикстур',
-        author = author,)
-    return comment
 
 @pytest.fixture
-def comments(news,author):
+def comment(news, author):
+    today = timezone.now()
+    comment = Comment.objects.create(
+        news=news,
+        created=today,
+        text='комментарий из фикстур',
+        author=author,)
+    return comment
+
+
+@pytest.fixture
+def comments(news, author):
     today = timezone.now()
     comments = []
     for index in range(5):
@@ -71,19 +73,23 @@ def comments(news,author):
         comment.save()
         comments.append(comment)
     return comments
+
+
 @pytest.fixture
 # Фикстура запрашивает другую фикстуру создания заметки.
-def id_for_args(news):  
+def id_for_args(news):
     # И возвращает кортеж, который содержит slug заметки.
     # На то, что это кортеж, указывает запятая в конце выражения.
     return (news.id,)
 
+
 @pytest.fixture
 # Фикстура запрашивает другую фикстуру создания заметки.
-def id_comment_for_args(comment):  
+def id_comment_for_args(comment):
     # И возвращает кортеж, который содержит slug заметки.
     # На то, что это кортеж, указывает запятая в конце выражения.
     return (comment.id,)
+
 
 @pytest.fixture
 def news_list():
@@ -96,8 +102,7 @@ def news_list():
         news.save()
     return index
 
+
 @pytest.fixture
 def form_data():
-    return {
-        'text': 'Новый текст'
-    }
+    return {'text': 'Новый текст'}

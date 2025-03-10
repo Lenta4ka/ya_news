@@ -6,7 +6,7 @@ from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
 
 @pytest.mark.django_db
 def test_news_count(client, news_list):
-# Подсчет постов на главной странице
+    # Подсчет постов на главной странице
     url = reverse('news:home')
     response = client.get(url)
     object_list = response.context['object_list']
@@ -14,7 +14,7 @@ def test_news_count(client, news_list):
     assert news_count is NEWS_COUNT_ON_HOME_PAGE
 
 
-@pytest.mark.django_db 
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     'parametrized_client, form_in_page',
     (
@@ -30,8 +30,9 @@ def test_form_for_anonim_and_login(
     response = parametrized_client.get(url)
     assert ('form' in response.context) is form_in_page
 
-@pytest.mark.django_db 
-def test_order_news_list(news_list,client):
+
+@pytest.mark.django_db
+def test_order_news_list(news_list, client):
     # Проверка сортировки новостей на главной странице
     url = reverse('news:home')
     response = client.get(url)
@@ -40,14 +41,15 @@ def test_order_news_list(news_list,client):
     sorted_dates = sorted(all_date_in_news, reverse=True)
     assert all_date_in_news == sorted_dates
 
-@pytest.mark.django_db 
+
+@pytest.mark.django_db
 def test_order_comment(news, client, comments):
     # Проверка сортировки комментарией на отдельной странице новости
-    url = reverse('news:detail', args =(news.id,))
+    url = reverse('news:detail', args=(news.id,))
     response = client.get(url)
     print(response.context)
     assert 'news' in response.context
-    '''all_comments = news.comment_set.all()
+    all_comments = news.comment_set.all()
     all_date_in_comments = [comment.created for comment in all_comments]
     sorted_dates = sorted(all_date_in_comments)
-    assert all_date_in_comments == sorted_dates'''
+    assert all_date_in_comments == sorted_dates
