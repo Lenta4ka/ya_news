@@ -77,6 +77,13 @@ def id_for_args(news):
     return (news.id,)
 
 @pytest.fixture
+# Фикстура запрашивает другую фикстуру создания заметки.
+def id_comment_for_args(comment):  
+    # И возвращает кортеж, который содержит slug заметки.
+    # На то, что это кортеж, указывает запятая в конце выражения.
+    return (comment.id,)
+
+@pytest.fixture
 def news_list():
     today = timezone.now()
     for index in range(NEWS_COUNT_ON_HOME_PAGE + 1):
@@ -86,3 +93,9 @@ def news_list():
             text='Просто текст.')
         news.save()
     return index
+
+@pytest.fixture
+def form_data():
+    return {
+        'text': 'Новый текст'
+    }
