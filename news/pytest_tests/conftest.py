@@ -105,4 +105,5 @@ def news_list():
 
 @pytest.fixture
 def form_data():
-    return {'text': 'Новый текст'}
+    TEXT = 'Новый текст'
+    return {'text': TEXT}

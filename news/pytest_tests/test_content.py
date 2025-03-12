@@ -2,6 +2,7 @@ import pytest
 
 from django.urls import reverse
 from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
+from news.forms import CommentForm
 
 
 @pytest.mark.django_db
@@ -11,24 +12,27 @@ def test_news_count(client, news_list):
     response = client.get(url)
     object_list = response.context['object_list']
     news_count = object_list.count()
-    assert news_count is NEWS_COUNT_ON_HOME_PAGE
+    assert news_count == NEWS_COUNT_ON_HOME_PAGE
+
+
+def test_form_for_anonim_and_login(
+        news, author_client):
+    # Отображение формы на страницах редактирования и удаления
+    # для зарегистрированного пользователя.
+    url = reverse('news:detail', args=(news.id,))
+    response = author_client.get(url)
+    assert ('form' in response.context)
+    assert isinstance(response.context['form'], CommentForm)
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'parametrized_client, form_in_page',
-    (
-        (pytest.lazy_fixture('client'), False),
-        (pytest.lazy_fixture('author_client'), True)
-    ),
-)
 def test_form_for_anonim_and_login(
-        news, parametrized_client, form_in_page):
+        news, client):
     # Отображение формы на страницах редактирования и удаления
-    # для зарегистрированного и анонимного пользователей.
+    # для анонимного пользователя.
     url = reverse('news:detail', args=(news.id,))
-    response = parametrized_client.get(url)
-    assert ('form' in response.context) is form_in_page
+    response = client.get(url)
+    assert ('form' in response.context) is False
 
 
 @pytest.mark.django_db
@@ -47,7 +51,6 @@ def test_order_comment(news, client, comments):
     # Проверка сортировки комментарией на отдельной странице новости
     url = reverse('news:detail', args=(news.id,))
     response = client.get(url)
-    print(response.context)
     assert 'news' in response.context
     all_comments = news.comment_set.all()
     all_date_in_comments = [comment.created for comment in all_comments]
